@@ -1,0 +1,30 @@
+version: "2.3"
+services:
+  redis:
+    restart: always
+    images: redis:alpine
+  
+  faktory:
+    restart: always
+    images: contribsys/faktory
+
+  relay-worker:
+    restart: always
+    images: yukimochi/ap-relay:worker
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    volumes:
+      - "./actor.pem:/actor.pem"
+
+  relay-server:
+    restart: always
+    images: yukimochi/ap-relay:server
+    build: .
+    environments:
+      - "FAKTORY_URL=tcp://faktory:7419"
+      - "REDIS_URL=redis://redis:6379"
+      - "RELAY_HOST=relay.toot.yukimochi.jp"
+      - "ACTOR_PEM=/actor.pem"
+    volumes:
+      - "./actor.pem:/actor.pem"
